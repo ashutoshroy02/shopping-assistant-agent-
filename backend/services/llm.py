@@ -68,8 +68,11 @@ Review: {text}"""
 
     response = await generate_response(prompt, temperature=0.3)
     try:
-        import json
-        return json.loads(response)
+        import json, re
+        json_match = re.search(r'\{[^{}]*\}', response, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+        return {"sentiment_score": 0, "label": "neutral", "pros": [], "cons": []}
     except Exception:
         return {"sentiment_score": 0, "label": "neutral", "pros": [], "cons": []}
 
