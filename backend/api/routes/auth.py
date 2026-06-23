@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.middleware.error_handler import (
-    AppException,
     UnauthorizedException,
     ValidationException,
 )
@@ -59,9 +58,8 @@ async def refresh_token(token_data: TokenRefresh, db: AsyncSession = Depends(get
         raise UnauthorizedException("Invalid token payload")
 
     from services.auth import get_user_by_id
-    import uuid
 
-    user = await get_user_by_id(db, uuid.UUID(user_id))
+    user = await get_user_by_id(db, user_id)
     if not user:
         raise UnauthorizedException("User not found")
 
@@ -90,9 +88,8 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
         raise UnauthorizedException("Invalid token payload")
 
     from services.auth import get_user_by_id
-    import uuid
 
-    user = await get_user_by_id(db, uuid.UUID(user_id))
+    user = await get_user_by_id(db, user_id)
     if not user:
         raise UnauthorizedException("User not found")
 

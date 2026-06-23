@@ -77,10 +77,10 @@ async def execute_workflow(user_query: str, user_id: str | None = None) -> dict[
         "final_response": "",
         "metadata": {},
         "retry_count": 0,
-        "max_retries": 3,
+        "max_retries": 2,
     }
 
-    result = await workflow.ainvoke(initial_state)
+    result = await workflow.ainvoke(initial_state, {"recursion_limit": 20})
 
     return {
         "response": result.get("final_response", ""),

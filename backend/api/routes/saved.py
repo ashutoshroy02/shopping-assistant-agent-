@@ -44,7 +44,7 @@ async def list_saved_products(
 
 @router.post("/{product_id}", status_code=201)
 async def save_product(
-    product_id: uuid.UUID,
+    product_id: str,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -71,7 +71,7 @@ async def save_product(
 
 @router.delete("/{product_id}")
 async def unsave_product(
-    product_id: uuid.UUID,
+    product_id: str,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -93,7 +93,7 @@ async def unsave_product(
 
 @router.get("/check/{product_id}")
 async def check_saved(
-    product_id: uuid.UUID,
+    product_id: str,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

@@ -95,7 +95,7 @@ async def list_brands(
 
 @router.get("/{product_id}", response_model=ProductResponse)
 async def get_product(
-    product_id: uuid.UUID,
+    product_id: str,
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Product).where(Product.id == product_id))
@@ -107,7 +107,7 @@ async def get_product(
 
 @router.get("/{product_id}/similar")
 async def get_similar_products(
-    product_id: uuid.UUID,
+    product_id: str,
     db: AsyncSession = Depends(get_db),
     limit: int = Query(default=5, ge=1, le=20),
 ):
@@ -300,7 +300,7 @@ async def track_price(
 
 @router.delete("/track-price/{product_id}")
 async def stop_tracking(
-    product_id: uuid.UUID,
+    product_id: str,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -349,7 +349,7 @@ async def list_tracked_products(
 
 @router.get("/price-history/{product_id}")
 async def get_price_history(
-    product_id: uuid.UUID,
+    product_id: str,
     period: str = Query(default="30d", pattern="^(7d|30d|90d|1y)$"),
     source: str = Query(default="all"),
     db: AsyncSession = Depends(get_db),

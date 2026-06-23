@@ -19,14 +19,14 @@ async def extract_intent(state: dict[str, Any]) -> dict[str, Any]:
 
 def extract_category(query: str) -> str:
     categories = {
-        "laptop": ["laptop", "notebook", "gaming laptop"],
-        "headphone": ["headphone", "headphones", "earphone", "earbuds", "airpods"],
-        "smartphone": ["phone", "smartphone", "mobile", "iphone", "galaxy"],
-        "tablet": ["tablet", "ipad"],
-        "camera": ["camera", "dslr", "mirrorless"],
-        "monitor": ["monitor", "display"],
-        "keyboard": ["keyboard"],
-        "mouse": ["mouse"],
+        "laptops": ["laptop", "laptops", "notebook", "gaming laptop"],
+        "headphones": ["headphone", "headphones", "earphone", "earbuds", "airpods"],
+        "smartphones": ["phone", "phones", "smartphone", "mobile", "iphone", "galaxy"],
+        "tablets": ["tablet", "ipad"],
+        "cameras": ["camera", "dslr", "mirrorless"],
+        "monitors": ["monitor", "display"],
+        "keyboards": ["keyboard"],
+        "mice": ["mouse"],
     }
 
     query_lower = query.lower()

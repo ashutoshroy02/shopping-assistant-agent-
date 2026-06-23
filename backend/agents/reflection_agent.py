@@ -18,8 +18,8 @@ async def reflect_on_output(state: dict[str, Any]) -> dict[str, Any]:
                 "valid": False,
                 "should_retry": True,
                 "issues": validation_result["issues"],
-                "retry_count": retry_count + 1,
-            }
+            },
+            "retry_count": retry_count + 1,
         }
 
     final_response = generate_final_response(state, validation_result)
@@ -113,7 +113,7 @@ def generate_final_response(state: dict[str, Any], validation: dict) -> str:
 
     if intent.get("budget") and intent["budget"].get("max"):
         response_parts.append(
-            f"within your budget of ₹{intent['budget']['max']:,.0f}"
+            f"within your budget of Rs.{intent['budget']['max']:,.0f}"
         )
 
     response_parts.append("")
@@ -121,7 +121,7 @@ def generate_final_response(state: dict[str, Any], validation: dict) -> str:
     if recommendations:
         response_parts.append("**Top Recommendations:**")
         for i, rec in enumerate(recommendations[:3], 1):
-            price_str = f"₹{rec.get('price', 0):,.0f}"
+            price_str = f"Rs.{rec.get('price', 0):,.0f}"
             rating_str = f"{rec.get('rating', 'N/A')}/5"
             response_parts.append(
                 f"{i}. **{rec.get('title', 'Unknown')}** - {price_str} ({rating_str})"

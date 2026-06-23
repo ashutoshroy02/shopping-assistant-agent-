@@ -120,7 +120,7 @@ async def list_sessions(
 
 @router.get("/history/{session_id}")
 async def get_chat_history(
-    session_id: uuid.UUID,
+    session_id: str,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -162,7 +162,7 @@ async def get_chat_history(
 
 @router.delete("/sessions/{session_id}")
 async def delete_session(
-    session_id: uuid.UUID,
+    session_id: str,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

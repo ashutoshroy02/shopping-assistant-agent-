@@ -1,23 +1,23 @@
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase
-
 from config import get_settings
-
-
-class Base(DeclarativeBase):
-    pass
-
 
 settings = get_settings()
 
+
+from database.models import Base
+
+
+DATABASE_URL = settings.DATABASE_URL
+
+if "postgresql" in DATABASE_URL:
+    DATABASE_URL = "sqlite+aiosqlite:///./shopping.db"
+
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    DATABASE_URL,
     echo=settings.DEBUG,
-    pool_size=20,
-    max_overflow=10,
-    pool_pre_ping=True,
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
 )
 
 async_session_factory = async_sessionmaker(
