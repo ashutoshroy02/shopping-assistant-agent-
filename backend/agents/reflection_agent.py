@@ -53,8 +53,9 @@ def validate_recommendations(
         issues.append("No products found")
         quality_score -= 30
 
-    if intent.get("budget") and recommendations:
-        max_budget = intent["budget"].get("max", float("inf"))
+    budget = intent.get("budget") or {}
+    if budget.get("max") and recommendations:
+        max_budget = budget["max"]
         within_budget = sum(
             1 for r in recommendations if r.get("price", 0) <= max_budget
         )
@@ -111,9 +112,10 @@ def generate_final_response(state: dict[str, Any], validation: dict) -> str:
     else:
         response_parts.append("I found some great options for you")
 
-    if intent.get("budget") and intent["budget"].get("max"):
+    budget = intent.get("budget") or {}
+    if budget.get("max"):
         response_parts.append(
-            f"within your budget of Rs.{intent['budget']['max']:,.0f}"
+            f"within your budget of Rs.{budget['max']:,.0f}"
         )
 
     response_parts.append("")

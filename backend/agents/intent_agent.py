@@ -7,7 +7,7 @@ async def extract_intent(state: dict[str, Any]) -> dict[str, Any]:
 
     intent = {
         "category": extract_category(query),
-        "budget": extract_budget(query),
+        "budget": extract_budget(query) or {},
         "brands": extract_brands(query),
         "use_case": extract_use_case(query),
         "specifications": extract_specifications(query),

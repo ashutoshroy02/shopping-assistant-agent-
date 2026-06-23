@@ -16,11 +16,12 @@ async def search_products(state: dict[str, Any]) -> dict[str, Any]:
         if intent.get("category"):
             query = query.where(Product.category == intent["category"])
 
-        if intent.get("budget") and intent["budget"].get("max"):
-            query = query.where(Product.price <= intent["budget"]["max"])
+        budget = intent.get("budget") or {}
+        if budget.get("max"):
+            query = query.where(Product.price <= budget["max"])
 
-        if intent.get("budget") and intent["budget"].get("min"):
-            query = query.where(Product.price >= intent["budget"]["min"])
+        if budget.get("min"):
+            query = query.where(Product.price >= budget["min"])
 
         if intent.get("brands"):
             brand_list = [b.lower() for b in intent["brands"]]
