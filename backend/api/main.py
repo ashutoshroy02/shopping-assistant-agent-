@@ -1,7 +1,10 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from api.middleware.error_handler import error_handler_middleware
 from api.middleware.logging import logging_middleware
@@ -30,7 +33,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,3 +54,16 @@ app.include_router(research.router, prefix="/api/v1/research", tags=["Research"]
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": settings.APP_NAME}
+
+
+static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
+
+
+@app.get("/")
+async def root():
+    return FileResponse(os.path.join(static_dir, "chat.html"))
+
+
+@app.get("/chat")
+async def chat_ui():
+    return FileResponse(os.path.join(static_dir, "chat.html"))
