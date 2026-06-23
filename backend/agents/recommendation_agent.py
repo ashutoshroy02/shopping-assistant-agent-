@@ -63,9 +63,10 @@ def calculate_recommendation_score(
         sentiment = product_reviews.get("sentiment_score", 0)
         score += max(0, sentiment) * 20
 
-    if product.get("price") and intent.get("budget", {}).get("max"):
-        budget = intent["budget"]["max"]
-        price_ratio = product["price"] / budget
+    budget = intent.get("budget") or {}
+    if product.get("price") and budget.get("max"):
+        budget_max = budget["max"]
+        price_ratio = product["price"] / budget_max
         if price_ratio <= 0.7:
             score += 15
         elif price_ratio <= 0.9:
