@@ -1,17 +1,14 @@
 # AI Shopping Assistant
 
-Multi-Agent Shopping Assistant with LLM-powered recommendations. Ask questions in natural language and get personalized product suggestions.
+Multi-Agent Shopping Assistant with real-time product search and LLM-powered recommendations.
 
 ## Features
 
+- **Real Product Search** - Searches Flipkart, Amazon, 91mobiles, Gadgets360 via TinyFish API
 - **Natural Language Shopping** - "Find gaming laptops under ₹1,00,000"
 - **Multi-Agent Pipeline** - 8 LangGraph agents: intent → search → reviews → compare → recommend → deals → price → reflect
 - **LLM-Powered Responses** - OpenRouter integration for natural conversational replies
 - **Fast Generic Queries** - Instant template responses for simple queries like "hi"
-- **Review Intelligence** - Sentiment analysis, pros/cons extraction
-- **Product Comparison** - Side-by-side feature comparison
-- **Price Tracking** - Historical data, price drop predictions
-- **Deal Discovery** - Coupons, discounts, cashback offers
 - **No Auth Required** - Chat directly, no sign-up needed
 
 ## Architecture
@@ -143,8 +140,14 @@ backend/
 | `GROQ_API_KEY` | OpenRouter API key | - |
 | `GROQ_BASE_URL` | API base URL | `https://openrouter.ai/api/v1` |
 | `LLM_MODEL` | Model ID | `google/gemma-4-26b-a4b-it:free` |
-| `DATABASE_URL` | Database connection | SQLite fallback |
-| `SECRET_KEY` | JWT secret | dev key |
+
+### TinyFish Setup (for real product search)
+
+```bash
+npm install -g @tiny-fish/cli
+tinyfish auth login --source cli
+# Paste your API key from https://agent.tinyfish.ai/api-keys
+```
 
 ## Tech Stack
 
