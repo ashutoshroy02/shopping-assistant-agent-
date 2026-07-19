@@ -1,4 +1,9 @@
+import asyncio
+import json
+import re
 from typing import Any
+
+from services.llm import generate_response
 
 
 async def generate_recommendations(state: dict[str, Any]) -> dict[str, Any]:
@@ -6,6 +11,7 @@ async def generate_recommendations(state: dict[str, Any]) -> dict[str, Any]:
     reviews = state.get("reviews", [])
     comparison = state.get("comparison", {})
     intent = state.get("intent", {})
+    user_query = state.get("user_query", "")
 
     if not products:
         return {
@@ -13,11 +19,13 @@ async def generate_recommendations(state: dict[str, Any]) -> dict[str, Any]:
             "metadata": {"error": "No products to recommend"},
         }
 
+    budget = intent.get("budget") or {}
+    budget_max = budget.get("max")
+
     scored_products = []
     for product in products:
         score = calculate_recommendation_score(product, reviews, intent)
         reasoning = generate_reasoning(product, reviews, intent, score)
-
         scored_products.append({
             "product_id": product.get("id"),
             "title": product.get("title"),

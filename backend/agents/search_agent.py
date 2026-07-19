@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.connection import async_session_factory
@@ -13,7 +13,7 @@ async def search_products(state: dict[str, Any]) -> dict[str, Any]:
     async with async_session_factory() as db:
         query = select(Product).where(Product.availability == True)
 
-        if intent.get("category"):
+        if intent.get("category") and intent["category"] != "general":
             query = query.where(Product.category == intent["category"])
 
         budget = intent.get("budget") or {}
@@ -25,7 +25,9 @@ async def search_products(state: dict[str, Any]) -> dict[str, Any]:
 
         if intent.get("brands"):
             brand_list = [b.lower() for b in intent["brands"]]
-            query = query.where(Product.brand.ilikeAny(brand_list))
+            query = query.where(
+                or_(*[Product.brand.ilike(f"%{b}%") for b in brand_list])
+            )
 
         query = query.order_by(Product.rating.desc().nullslast()).limit(20)
 

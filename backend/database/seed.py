@@ -22,7 +22,7 @@ async def seed_database():
             return
 
         admin = User(
-            id=uuid.uuid4(),
+            id=str(uuid.uuid4()),
             name="Admin",
             email="admin@shopping-assistant.com",
             password_hash=get_password_hash("admin123"),
@@ -31,7 +31,7 @@ async def seed_database():
         db.add(admin)
 
         demo_user = User(
-            id=uuid.uuid4(),
+            id=str(uuid.uuid4()),
             name="Demo User",
             email="demo@shopping-assistant.com",
             password_hash=get_password_hash("demo123"),

@@ -1,378 +1,159 @@
-# 🛒 AI Shopping Assistant
+# AI Shopping Assistant
 
-A production-grade Multi-Agent Shopping Assistant capable of autonomously researching products, comparing alternatives, analyzing reviews, tracking prices, discovering deals, and generating personalized recommendations.
+Multi-Agent Shopping Assistant with LLM-powered recommendations. Ask questions in natural language and get personalized product suggestions.
 
-## 🎯 Features
+## Features
 
-- **Natural Language Shopping** - Ask questions like "Find gaming laptops under ₹1,00,000"
-- **Multi-Agent Architecture** - 8 specialized AI agents working together
+- **Natural Language Shopping** - "Find gaming laptops under ₹1,00,000"
+- **Multi-Agent Pipeline** - 8 LangGraph agents: intent → search → reviews → compare → recommend → deals → price → reflect
+- **LLM-Powered Responses** - OpenRouter integration for natural conversational replies
+- **Fast Generic Queries** - Instant template responses for simple queries like "hi"
 - **Review Intelligence** - Sentiment analysis, pros/cons extraction
 - **Product Comparison** - Side-by-side feature comparison
 - **Price Tracking** - Historical data, price drop predictions
 - **Deal Discovery** - Coupons, discounts, cashback offers
-- **Personalized Recommendations** - Based on your preferences and budget
-- **RAG Knowledge Base** - Semantic search across product data
+- **No Auth Required** - Chat directly, no sign-up needed
 
-## 🏗️ Architecture
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Next.js Frontend                         │
-│  Chat Interface │ Products │ Analytics │ Price Tracker      │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    FastAPI Backend                           │
-│  Auth │ Chat │ Products │ Analytics │ Research               │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  LangGraph Orchestrator                      │
-│  Intent → Search → Reviews → Compare → Recommend → Reflect  │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     MCP Servers                              │
-│  Product │ Review │ Pricing │ Deals                          │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-          ┌───────────────────┼───────────────────┐
-          ▼                   ▼                   ▼
-    ┌──────────┐       ┌──────────┐       ┌──────────┐
-    │PostgreSQL│       │  Redis   │       │ ChromaDB │
-    │  (Data)  │       │ (Cache)  │       │  (RAG)   │
-    └──────────┘       └──────────┘       └──────────┘
+Streamlit Frontend (:8501)
+        │
+        ▼
+FastAPI Backend (:8000)
+        │
+        ▼
+LangGraph Orchestrator
+  Intent → Search → Reviews → Compare → Recommend → Deals → Price → Reflect
+        │
+        ▼
+SQLite (data) + OpenRouter LLM
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
 - Python 3.11+
-- Node.js 18+
-- Docker & Docker Compose
 - Git
 
-### 1. Clone the Repository
+### 1. Clone & Setup
 
 ```bash
-git clone https://github.com/your-username/shopping-assistant.git
-cd shopping-assistant
+git clone https://github.com/ashutoshroy02/shopping-assistant-agent-.git
+cd shopping-assistant-agent-
 ```
 
-### 2. Set Up Environment
+### 2. Environment
 
 ```bash
 cp .env.example .env
-# Edit .env with your API keys
 ```
 
-### 3. Start Services
-
-```bash
-docker-compose up -d
+Edit `.env`:
+```env
+GROQ_API_KEY=sk-or-v1-your-openrouter-key
+GROQ_BASE_URL=https://openrouter.ai/api/v1
+LLM_MODEL=google/gemma-4-26b-a4b-it:free
 ```
 
-This starts:
-- PostgreSQL (port 5432)
-- Redis (port 6379)
-- ChromaDB (port 8000)
-
-### 4. Set Up Backend
+### 3. Backend
 
 ```bash
 cd backend
-
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+venv\Scripts\activate     # Windows
+# source venv/bin/activate  # Linux/Mac
 
-# Install dependencies
-pip install -r requirements.txt
+pip install fastapi uvicorn sqlalchemy aiosqlite alembic pydantic pydantic-settings python-jose[cryptography] bcrypt python-multipart httpx tenacity structlog langgraph langchain-core openai email-validator streamlit
 
-# Run migrations
-alembic upgrade head
-
-# Seed database
 python -m database.seed
-
-# Start server
-uvicorn api.main:app --reload
+python -m uvicorn api.main:app --host 127.0.0.1 --port 8000
 ```
 
-Backend runs at: http://localhost:8000
-API docs at: http://localhost:8000/docs
-
-### 5. Set Up Frontend
+### 4. Frontend
 
 ```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
+cd backend
+streamlit run app.py --server.port 8501
 ```
 
-Frontend runs at: http://localhost:3000
+Open http://localhost:8501
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-shopping-assistant/
-├── backend/
-│   ├── agents/              # LangGraph AI agents
-│   │   ├── intent_agent.py      # Extracts query parameters
-│   │   ├── search_agent.py      # Product discovery
-│   │   ├── review_agent.py      # Sentiment analysis
-│   │   ├── comparison_agent.py  # Side-by-side comparison
-│   │   ├── recommendation_agent.py # Ranking & scoring
-│   │   ├── deal_agent.py        # Coupon & discount finder
-│   │   ├── price_agent.py       # Price tracking & predictions
-│   │   └── reflection_agent.py  # Quality validation
-│   ├── graph/               # LangGraph workflow
-│   │   ├── state.py             # State schema
-│   │   └── workflow.py          # Agent orchestration
-│   ├── mcp_servers/         # Model Context Protocol servers
-│   │   ├── product_server.py    # Product tools
-│   │   ├── review_server.py     # Review tools
-│   │   ├── pricing_server.py    # Pricing tools
-│   │   └── deals_server.py      # Deals tools
-│   ├── api/                 # FastAPI routes
-│   │   ├── main.py              # App entry point
-│   │   ├── routes/              # API endpoints
-│   │   └── middleware/          # CORS, auth, rate limiting
-│   ├── database/            # SQLAlchemy models & migrations
-│   ├── services/            # Business logic
-│   │   ├── auth.py              # JWT authentication
-│   │   ├── rag.py               # ChromaDB vector search
-│   │   └── memory.py            # Redis session memory
-│   ├── tests/               # Test suite
-│   │   ├── api/                 # API endpoint tests
-│   │   ├── unit/                # Unit tests
-│   │   └── integration/         # Integration tests
-│   ├── config.py            # Settings management
-│   ├── pyproject.toml       # Python project config
-│   ├── requirements.txt     # Python dependencies
-│   ├── Dockerfile           # Backend Docker image
-│   └── alembic.ini          # Database migration config
-├── frontend/
-│   ├── app/                 # Next.js pages
-│   │   ├── page.tsx            # Home page
-│   │   ├── chat/               # Chat interface
-│   │   ├── products/           # Product browser
-│   │   ├── saved/              # Wishlist
-│   │   ├── tracker/            # Price tracker
-│   │   └── analytics/          # Analytics dashboard
-│   ├── components/          # React components
-│   │   ├── ui/                 # Shadcn UI components
-│   │   ├── chat/               # Chat components
-│   │   └── products/           # Product components
-│   ├── hooks/               # Custom React hooks
-│   ├── lib/                 # Utilities & API client
-│   ├── types/               # TypeScript types
-│   ├── package.json         # Node dependencies
-│   └── tailwind.config.js   # Tailwind CSS config
-├── docs/                    # Documentation
-│   ├── ARCH.md              # Architecture diagrams
-│   ├── API.md               # API specification
-│   ├── DB.md                # Database schema
-│   ├── FLOW.md              # User journeys
-│   ├── PRD.md               # Product requirements
-│   └── IMPL-PLAN.md         # Implementation plan
-├── docker-compose.yml       # Docker services
-├── .env.example             # Environment template
-└── AGENTS.md                # AI agent configuration
+backend/
+├── agents/                  # LangGraph AI agents
+│   ├── intent_agent.py      # Regex-based intent extraction
+│   ├── search_agent.py      # DB product search with fallback
+│   ├── review_agent.py      # Sentiment analysis
+│   ├── comparison_agent.py  # Feature comparison
+│   ├── recommendation_agent.py  # Scoring + template reasoning
+│   ├── deal_agent.py        # Discount/coupon finder
+│   ├── price_agent.py       # Price tracking
+│   └── reflection_agent.py  # Validation + LLM final response
+├── graph/
+│   ├── state.py             # Agent state schema
+│   └── workflow.py          # LangGraph pipeline
+├── api/routes/
+│   └── chat.py              # Chat endpoint (no auth)
+├── database/
+│   ├── connection.py        # SQLite auto-fallback
+│   ├── models.py            # SQLAlchemy models
+│   └── seed.py              # Seed data (5 products, 2 users)
+├── services/
+│   ├── llm.py               # OpenRouter LLM client
+│   ├── auth.py              # JWT auth (optional)
+│   └── memory.py            # In-memory fallback (no Redis)
+├── app.py                   # Streamlit frontend
+├── config.py                # Settings from .env
+└── requirements.txt
 ```
 
-## 🔧 API Endpoints
+## API Endpoints
 
-### Authentication
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/auth/register` | Create account |
-| POST | `/api/v1/auth/login` | Get access token |
-| POST | `/api/v1/auth/refresh` | Refresh token |
-
-### Chat
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/chat` | Send message to AI |
-| GET | `/api/v1/chat/sessions` | List chat sessions |
-| GET | `/api/v1/chat/history/{id}` | Get chat history |
-
-### Products
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/products` | List products |
-| GET | `/api/v1/products/{id}` | Get product details |
+| POST | `/api/v1/chat` | Send message, get AI response |
+| GET | `/api/v1/products` | List all products |
 | GET | `/api/v1/products/categories` | List categories |
-| GET | `/api/v1/products/brands` | List brands |
 | POST | `/api/v1/products/recommend` | Get recommendations |
 | POST | `/api/v1/products/compare` | Compare products |
-| GET | `/api/v1/products/price-history/{id}` | Price history |
+| GET | `/health` | Health check |
+| GET | `/docs` | Swagger API docs |
 
-### Saved Products
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/saved` | List saved products |
-| POST | `/api/v1/saved/{id}` | Save product |
-| DELETE | `/api/v1/saved/{id}` | Remove from saved |
+## How It Works
 
-### Price Tracking
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/products/tracked` | List tracked products |
-| POST | `/api/v1/products/track-price` | Start tracking |
-| DELETE | `/api/v1/products/track-price/{id}` | Stop tracking |
+1. **Intent Agent** - Extracts category, budget, use case from query via regex
+2. **Search Agent** - Queries SQLite, falls back to top-rated products for generic queries
+3. **Review Agent** - Analyzes sentiment (keyword-based or LLM)
+4. **Comparison Agent** - Side-by-side feature comparison
+5. **Recommendation Agent** - Scores products algorithmically (rating, budget fit, use case match)
+6. **Deal Agent** - Finds discounts, coupons, cashback
+7. **Price Agent** - Historical price analysis
+8. **Reflection Agent** - Validates output, generates final response:
+   - Generic query → instant template (~200ms)
+   - Specific query → LLM-powered natural response (~8-10s)
 
-### Analytics
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/analytics` | Get analytics |
-| GET | `/api/v1/analytics/trends` | Search trends |
+## Environment Variables
 
-### Research
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/research` | Start autonomous research |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `GROQ_API_KEY` | OpenRouter API key | - |
+| `GROQ_BASE_URL` | API base URL | `https://openrouter.ai/api/v1` |
+| `LLM_MODEL` | Model ID | `google/gemma-4-26b-a4b-it:free` |
+| `DATABASE_URL` | Database connection | SQLite fallback |
+| `SECRET_KEY` | JWT secret | dev key |
 
-## 🧪 Testing
+## Tech Stack
 
-### Run All Tests
+- **Backend**: FastAPI + LangGraph + SQLAlchemy
+- **Frontend**: Streamlit
+- **Database**: SQLite (PostgreSQL optional)
+- **LLM**: OpenRouter (free models)
+- **No external services required** - runs fully local
 
-```bash
-# Backend tests
-cd backend
-pytest -v
+## License
 
-# With coverage
-pytest --cov=backend --cov-report=html
-
-# Frontend tests
-cd frontend
-npm test
-```
-
-### Test Structure
-
-```
-backend/tests/
-├── api/                    # API endpoint tests
-│   ├── test_auth.py           # Authentication tests
-│   ├── test_chat.py           # Chat endpoint tests
-│   └── test_products.py       # Product endpoint tests
-├── unit/                   # Unit tests
-│   ├── test_agents.py         # Agent logic tests
-│   └── test_services.py       # Service tests
-└── integration/            # Integration tests
-    ├── test_workflow.py       # LangGraph workflow tests
-    └── test_mcp.py            # MCP server tests
-```
-
-### Test Coverage
-
-We aim for **80%+ code coverage**. Check coverage:
-
-```bash
-pytest --cov=backend --cov-report=term-missing
-```
-
-## 🔐 Environment Variables
-
-```env
-# Application
-APP_NAME=Shopping Assistant
-APP_ENV=development
-DEBUG=true
-
-# Backend
-BACKEND_HOST=0.0.0.0
-BACKEND_PORT=8000
-SECRET_KEY=your-secret-key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-
-# Database
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=shopping_assistant
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/shopping_assistant
-
-# Redis
-REDIS_URL=redis://localhost:6379/0
-
-# ChromaDB
-CHROMA_HOST=localhost
-CHROMA_PORT=8000
-
-# LLM (choose one)
-OPENAI_API_KEY=your-openai-key
-ANTHROPIC_API_KEY=your-anthropic-key
-```
-
-## 🐳 Docker Commands
-
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop all services
-docker-compose down
-
-# Rebuild services
-docker-compose build --no-cache
-
-# Run backend in container
-docker-compose up backend
-```
-
-## 📚 Documentation
-
-| Document | Description |
-|----------|-------------|
-| [Architecture](docs/ARCH.md) | System design & diagrams |
-| [API Specification](docs/API.md) | Endpoint contracts |
-| [Database Schema](docs/DB.md) | Data model & ERD |
-| [User Flows](docs/FLOW.md) | User journeys |
-| [PRD](docs/PRD.md) | Product requirements |
-| [Implementation Plan](docs/IMPL-PLAN.md) | Build phases |
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Commit Convention
-
-```
-feat:     New feature
-fix:      Bug fix
-docs:     Documentation
-style:    Formatting
-refactor: Code restructuring
-test:     Adding tests
-chore:    Maintenance
-```
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [LangGraph](https://github.com/langchain-ai/langgraph) - Agent orchestration
-- [FastAPI](https://fastapi.tiangolo.com/) - Backend framework
-- [Next.js](https://nextjs.org/) - Frontend framework
-- [ChromaDB](https://www.trychroma.com/) - Vector database
-- [Shadcn UI](https://ui.shadcn.com/) - UI components
+MIT

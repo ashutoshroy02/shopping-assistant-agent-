@@ -1,17 +1,70 @@
 import json
+from collections import defaultdict
 from datetime import timedelta
 from typing import Any
-
-import redis.asyncio as redis
 
 from config import get_settings
 
 settings = get_settings()
 
 
+class InMemoryStore:
+    def __init__(self):
+        self.lists: dict[str, list[str]] = defaultdict(list)
+        self.strings: dict[str, str] = {}
+        self.sets: dict[str, set[str]] = defaultdict(set)
+        self.counters: dict[str, int] = defaultdict(int)
+
+    async def rpush(self, key: str, value: str):
+        self.lists[key].append(value)
+
+    async def lrange(self, key: str, start: int, end: int) -> list[str]:
+        data = self.lists[key]
+        if end == -1:
+            return data[start:]
+        return data[start : end + 1]
+
+    async def ltrim(self, key: str, start: int, end: int):
+        self.lists[key] = self.lists[key][start : end + 1]
+
+    async def lpush(self, key: str, value: str):
+        self.lists[key].insert(0, value)
+
+    async def get(self, key: str) -> str | None:
+        return self.strings.get(key)
+
+    async def set(self, key: str, value: str, ex: int | None = None):
+        self.strings[key] = value
+
+    async def expire(self, key: str, seconds: int):
+        pass
+
+    async def sadd(self, key: str, value: str):
+        self.sets[key].add(value)
+
+    async def srem(self, key: str, value: str):
+        self.sets[key].discard(value)
+
+    async def smembers(self, key: str) -> set[str]:
+        return self.sets[key]
+
+    async def sismember(self, key: str, value: str) -> bool:
+        return value in self.sets[key]
+
+    async def incr(self, key: str) -> int:
+        self.counters[key] += 1
+        return self.counters[key]
+
+
 class MemoryService:
     def __init__(self):
-        self.redis = redis.from_url(settings.REDIS_URL, decode_responses=True)
+        try:
+            import redis.asyncio as redis
+            self.redis = redis.from_url(settings.REDIS_URL, decode_responses=True)
+            self._use_redis = True
+        except Exception:
+            self.redis = InMemoryStore()
+            self._use_redis = False
         self.default_ttl = timedelta(days=30)
 
     async def get_conversation_history(
