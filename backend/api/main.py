@@ -56,6 +56,13 @@ async def health_check():
     return {"status": "healthy", "service": settings.APP_NAME}
 
 
+@app.get("/test-search")
+async def test_search(q: str = "best phone under 15000"):
+    from services.product_search import search_products_online
+    results = await search_products_online(q)
+    return {"query": q, "count": len(results), "results": results[:5]}
+
+
 static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
 
 

@@ -89,7 +89,7 @@ def validate_recommendations(
             issues.append("No recommendations match preferred brands")
             quality_score -= 10
 
-    should_retry = quality_score < 60 and retry_count < max_retries and len(recommendations) > 0
+    should_retry = False  # Never retry - just generate response with what we have
 
     return {
         "valid": quality_score >= 60,
@@ -190,12 +190,13 @@ Write a helpful response with the top 3 recommendations. Include why each is goo
 
     if recommendations:
         response_parts.append("**Top Recommendations:**")
-        for i, rec in enumerate(recommendations[:3], 1):
-            price_str = f"₹{rec.get('price', 0):,.0f}"
-            rating_str = f"{rec.get('rating', 'N/A')}/5"
-            response_parts.append(f"{i}. **{rec.get('title', 'Unknown')}** - {price_str} ({rating_str})")
-            if rec.get("reasoning"):
-                response_parts.append(f"   {rec['reasoning']}")
+        for i, rec in enumerate(recommendations[:5], 1):
+            title = rec.get('title', 'Unknown')
+            price = rec.get('price', 0)
+            price_str = f"₹{price:,.0f}" if price > 0 else "Check price"
+            response_parts.append(f"{i}. **{title}** - {price_str}")
+            if rec.get("source_url"):
+                response_parts.append(f"   [View]({rec['source_url']})")
         response_parts.append("")
 
     if deals:
@@ -203,4 +204,5 @@ Write a helpful response with the top 3 recommendations. Include why each is goo
         for deal in deals[:2]:
             response_parts.append(f"- {deal.get('description', '')}")
 
-    return "\n".join(response_parts)
+    result = "\n".join(response_parts)
+    return result if result else "I found some results! Check the products above for details."

@@ -1,60 +1,38 @@
 from typing import Any
 
-from sqlalchemy import select, or_
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from database.connection import async_session_factory
-from database.models import Product
+from services.product_search import search_products_online
 
 
 async def search_products(state: dict[str, Any]) -> dict[str, Any]:
     intent = state.get("intent", {})
+    user_query = state.get("user_query", "")
 
-    async with async_session_factory() as db:
-        query = select(Product).where(Product.availability == True)
+    # Always search with original query for best results
+    search_query = user_query
 
-        if intent.get("category") and intent["category"] != "general":
-            query = query.where(Product.category == intent["category"])
+    budget = intent.get("budget") or {}
+    if budget.get("max"):
+        search_query += f" under {budget['max']} INR"
 
-        budget = intent.get("budget") or {}
-        if budget.get("max"):
-            query = query.where(Product.price <= budget["max"])
+    search_query += " buy online India"
 
-        if budget.get("min"):
-            query = query.where(Product.price >= budget["min"])
+    # Search real products online
+    products_list = await search_products_online(search_query)
 
-        if intent.get("brands"):
-            brand_list = [b.lower() for b in intent["brands"]]
-            query = query.where(
-                or_(*[Product.brand.ilike(f"%{b}%") for b in brand_list])
-            )
-
-        query = query.order_by(Product.rating.desc().nullslast()).limit(20)
-
-        result = await db.execute(query)
-        products = result.scalars().all()
-
-        products_list = []
-        for product in products:
-            products_list.append({
-                "id": str(product.id),
-                "title": product.title,
-                "description": product.description,
-                "price": product.price,
-                "original_price": product.original_price,
-                "rating": product.rating,
-                "review_count": product.review_count,
-                "category": product.category,
-                "brand": product.brand,
-                "specifications": product.specifications,
-                "images": product.images,
-                "availability": product.availability,
-            })
+    # Filter by budget only if products have real prices
+    if budget.get("max") and products_list:
+        priced = [p for p in products_list if p.get("price", 0) > 0]
+        if priced:
+            products_list = [
+                p for p in products_list
+                if p.get("price", 0) == 0 or p.get("price", 0) <= budget["max"] * 1.1
+            ]
 
     return {
         "products": products_list,
         "metadata": {
             "products_found": len(products_list),
+            "search_query": search_query,
             "search_criteria": intent,
         },
     }
